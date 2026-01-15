@@ -4,3 +4,4 @@ toml
 pandas
 schedule
 requests
+pytest

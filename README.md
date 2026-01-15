@@ -15,7 +15,32 @@ ThetaGangExpanded builds upon the foundation of the original ThetaGang project, 
 
 ## Project Status
 
-This project is currently in the **planning phase**. All architecture, documentation, and blueprints are complete. Implementation of actual trading code is the next phase.
+**Phase 2 - Strategy Expansion: COMPLETE!** ✓
+
+### Phase 1 - Core Implementation ✓
+- ✓ Configuration system (TOML + environment variables)
+- ✓ IBKR data fetcher (async connection, options chains, positions, account info)
+- ✓ Wheel strategy logic (cash-secured puts, covered calls, position rolling)
+- ✓ Risk management (margin limits, concentration checks, VIX-based sizing)
+- ✓ Order execution (dry-run mode, order tracking, status monitoring)
+- ✓ Main orchestrator with scheduling
+- ✓ Unit tests for core functionality
+
+### Phase 2 - Multi-Strategy Support ✓
+- ✓ Abstract Strategy base class for pluggable strategies
+- ✓ Iron Condor strategy implementation (4-leg neutral strategy)
+- ✓ Strategy Selector for dynamic strategy selection
+- ✓ Market regime detection (bullish/bearish/neutral, high/low volatility)
+- ✓ Multi-strategy portfolio management
+- ✓ Enhanced configuration with Iron Condor parameters
+- ✓ Comprehensive Iron Condor tests
+
+**The bot now supports:**
+- **Wheel Strategy** - For directional/premium collection
+- **Iron Condor** - For range-bound, low-volatility markets
+- **Dynamic Selection** - Auto-select best strategy per market conditions
+
+Ready for multi-strategy paper trading! See Usage section below.
 
 ## Documentation
 
@@ -58,21 +83,62 @@ Edit `configs/thetagang.toml` to configure account settings, trading symbols, ri
 
 ## Usage
 
-**Note**: Implementation is not yet complete. The following commands are planned functionality.
+### Before First Run
 
-Run the bot manually:
+1. **Start IB Gateway or TWS**
+   - For paper trading: Configure to use port 7497
+   - For live trading: Use port 7496 (NOT RECOMMENDED until thoroughly tested)
+   - Enable API connections in TWS/Gateway settings
+
+2. **Configure your .env file**
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your IBKR account number
+   ```
+
+3. **Review and customize configs/thetagang.toml**
+   - Set symbols to trade
+   - Adjust risk parameters
+   - Verify dry_run = true for safety
+
+### Running the Bot
+
+**Run once (single iteration):**
+```bash
+python -m src.main --once
+```
+
+**Run continuously (scheduled mode):**
 ```bash
 python -m src.main
 ```
 
-Run backtests:
-```bash
-python -m src.backtest --start-date 2023-01-01 --end-date 2024-01-01
-```
+The bot will:
+- Run every 60 minutes during trading hours (9:30 AM - 4:00 PM ET)
+- Analyze positions and market data
+- Generate trade recommendations
+- Validate trades against risk limits
+- Execute approved trades (or log in dry-run mode)
 
-Run tests:
+### Run Tests
+
 ```bash
 pytest tests/
+```
+
+### Testing Individual Modules
+
+Each module has a `main()` function for standalone testing:
+
+```bash
+# Test data fetcher
+python -m src.data_fetcher
+
+# Test strategy logic
+python -m src.core_strategy
+
+# Test risk manager
+python -m src.risk_manager
 ```
 
 ## Safety and Risk Disclaimer

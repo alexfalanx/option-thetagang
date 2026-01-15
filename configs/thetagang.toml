@@ -1,0 +1,164 @@
+# ThetaGangExpanded Configuration
+# This file controls all trading behavior, risk management, and execution parameters
+
+# Global Settings
+dry_run = true  # Set to false for live trading (USE WITH EXTREME CAUTION)
+
+# =============================================================================
+# Account Configuration
+# =============================================================================
+[account]
+# Account number is loaded from .env: IBKR_ACCOUNT_NUMBER
+host = "127.0.0.1"
+port = 7497  # 7497 for paper trading, 7496 for live trading
+client_id = 1
+read_only = false  # Set to true to prevent any order submissions
+
+# =============================================================================
+# Symbol Configuration
+# =============================================================================
+[symbols.defaults]
+# These are default values applied to all symbols unless overridden
+
+# Position sizing
+max_positions = 1  # Maximum number of positions per symbol
+
+# Target delta for options
+target_delta = 0.30  # Aim for 30 delta options (70% probability of expiring worthless)
+
+# Premium requirements
+min_premium = 0.0  # Minimum premium in dollars
+min_premium_percent = 0.0  # Minimum premium as % of strike price
+
+# Days to expiration
+dte_min = 30  # Minimum DTE when opening new positions
+dte_max = 45  # Maximum DTE when opening new positions
+
+# Rolling criteria
+roll_when_dte = 21  # Roll positions when DTE drops below this
+roll_when_pnl_percent = 50.0  # Roll when profit reaches 50% of max gain
+
+# Assignment handling
+write_calls_on_assignment = true  # Automatically sell covered calls if assigned
+
+# Risk limits
+max_position_size_percent = 10.0  # Max position size as % of portfolio value
+
+# =============================================================================
+# Per-Symbol Overrides
+# =============================================================================
+# Configure individual symbols with custom parameters
+
+[symbols.tickers.SPY]
+enabled = true
+max_positions = 2
+target_delta = 0.30
+dte_min = 30
+dte_max = 45
+
+[symbols.tickers.QQQ]
+enabled = true
+max_positions = 1
+target_delta = 0.25
+dte_min = 35
+dte_max = 50
+
+[symbols.tickers.AAPL]
+enabled = true
+max_positions = 1
+target_delta = 0.30
+min_premium = 50.0  # Require at least $50 premium
+
+[symbols.tickers.TSLA]
+enabled = false  # Disabled by default due to high volatility
+max_positions = 1
+target_delta = 0.20  # Lower delta for higher vol stocks
+dte_min = 30
+dte_max = 40
+
+# =============================================================================
+# Risk Management
+# =============================================================================
+[risk]
+# Portfolio-level risk controls
+
+# Margin and concentration limits
+max_portfolio_margin_usage = 0.5  # Use max 50% of available margin
+max_concentration_per_symbol = 0.25  # No more than 25% of portfolio in any symbol
+
+# Volatility controls
+max_vix_for_new_positions = null  # Set to number to block new positions when VIX > threshold
+reduce_size_when_vix_above = 30.0  # Reduce position size when VIX > 30
+vix_size_reduction_factor = 0.5  # Reduce size by 50% when VIX is high
+
+# Stop loss
+enable_stop_loss = false  # Enable automatic stop losses
+stop_loss_percent = 50.0  # Close position if loss > 50% of premium received
+
+# Position limits
+max_total_positions = null  # Set to number to limit total open positions
+
+# =============================================================================
+# Strategy Configuration
+# =============================================================================
+[strategy]
+strategy_name = "auto"  # 'auto' for dynamic selection, or specify 'wheel', 'iron_condor'
+
+# Wheel strategy settings
+wheel_enabled = true
+prefer_cash_secured_puts = true  # Start with CSPs rather than covered calls
+
+# Iron Condor strategy settings
+iron_condor_enabled = true  # Enable Iron Condor for range-bound markets
+iron_condor_wing_width = 5.0  # Width of each spread in dollars
+iron_condor_min_credit = 1.0  # Minimum total credit to collect
+iron_condor_profit_target = 50.0  # Close at 50% profit
+iron_condor_max_loss = 200.0  # Close if loss exceeds 200% of credit
+
+# Future strategies
+strangle_enabled = false
+
+# =============================================================================
+# Data Provider Configuration
+# =============================================================================
+[data]
+primary_provider = "ibkr"  # Primary data source
+
+# Polygon.io settings (requires API key in .env)
+use_polygon_for_greeks = false  # Use Polygon for Greeks instead of IBKR
+
+# Earnings calendar
+avoid_earnings = true  # Avoid opening positions before earnings
+earnings_buffer_days = 7  # Don't open positions within 7 days of earnings
+
+# =============================================================================
+# Schedule Configuration
+# =============================================================================
+[schedule]
+# When to run the trading logic
+
+run_on_startup = true  # Run immediately on startup
+run_every_minutes = 60  # Run every 60 minutes during trading hours
+
+# Trading hours (in UTC)
+# 9:30 AM ET = 14:30 UTC, 4:00 PM ET = 20:00 UTC
+trading_start_hour = 14  # 9:30 AM ET
+trading_end_hour = 20    # 4:00 PM ET
+
+# Days of week to trade (0 = Monday, 4 = Friday, 6 = Sunday)
+trading_days = [0, 1, 2, 3, 4]  # Monday through Friday
+
+# =============================================================================
+# Logging and Alerts
+# =============================================================================
+[logging]
+level = "INFO"  # DEBUG, INFO, WARNING, ERROR
+log_to_file = true
+log_dir = "logs"
+log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Email alerts (credentials in .env)
+enable_email_alerts = false
+
+# Slack alerts (webhook URL in .env)
+enable_slack_alerts = false
